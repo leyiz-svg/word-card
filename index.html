@@ -1,0 +1,854 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>🎯 数字翻牌 · 批量生词</title>
+    <style>
+        /* ===== 全局重置 ===== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Segoe UI', 'PingFang SC', Roboto, system-ui, sans-serif;
+            min-height: 100vh;
+            background: linear-gradient(145deg, #f0f5fe 0%, #dce6f5 100%);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            margin: 0;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 960px;
+            background: rgba(255, 255, 255, 0.65);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-radius: 48px;
+            padding: 30px 34px 38px;
+            box-shadow: 0 30px 60px -20px rgba(0, 20, 40, 0.35);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            transition: padding 0.3s;
+        }
+
+        /* ===== 头部 ===== */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            margin-bottom: 24px;
+        }
+        .header h1 {
+            font-size: 26px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #1e293b;
+        }
+        .header h1 span {
+            background: linear-gradient(135deg, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .header .total-badge {
+            font-size: 14px;
+            font-weight: 600;
+            background: #eef2ff;
+            color: #4f46e5;
+            padding: 6px 18px;
+            border-radius: 40px;
+            border: 1px solid #c7d2fe;
+            white-space: nowrap;
+        }
+
+        /* ===== 步骤1：批量输入 ===== */
+        .step-input {
+            display: block;
+        }
+        .step-input.hidden {
+            display: none;
+        }
+
+        .input-section {
+            background: rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 18px 22px 22px;
+            margin-bottom: 18px;
+            border: 1px solid rgba(255, 255, 255, 0.7);
+        }
+
+        .input-section .field {
+            margin-bottom: 12px;
+        }
+        .input-section .field label {
+            display: block;
+            font-size: 14px;
+            font-weight: 600;
+            color: #475569;
+            margin-bottom: 6px;
+        }
+        .input-section .field textarea {
+            width: 100%;
+            min-height: 120px;
+            padding: 14px 18px;
+            border: 2px solid #e2e8f0;
+            border-radius: 16px;
+            font-size: 15px;
+            font-family: inherit;
+            background: white;
+            transition: 0.2s;
+            outline: none;
+            resize: vertical;
+            line-height: 1.6;
+        }
+        .input-section .field textarea:focus {
+            border-color: #7c3aed;
+            box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.12);
+        }
+        .input-section .field .hint {
+            font-size: 13px;
+            color: #94a3b8;
+            margin-top: 4px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .input-section .field .hint .count {
+            font-weight: 600;
+            color: #1e293b;
+        }
+
+        .btn {
+            padding: 12px 28px;
+            border: none;
+            border-radius: 60px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            background: white;
+            color: #1e293b;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+            white-space: nowrap;
+            font-family: inherit;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+        }
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            box-shadow: 0 4px 14px rgba(79, 70, 229, 0.3);
+        }
+        .btn-primary:hover {
+            box-shadow: 0 8px 24px rgba(79, 70, 229, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: white;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.3);
+        }
+        .btn-success:hover {
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 2px solid #cbd5e1;
+            color: #475569;
+        }
+        .btn-outline:hover {
+            border-color: #94a3b8;
+            background: #f8fafc;
+        }
+
+        .btn-danger-outline {
+            background: transparent;
+            border: 2px solid #fca5a5;
+            color: #b91c1c;
+        }
+        .btn-danger-outline:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+
+        .btn-sm {
+            padding: 8px 18px;
+            font-size: 13px;
+        }
+
+        .actions-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-top: 14px;
+        }
+        .actions-row .btn {
+            flex: 1 0 auto;
+        }
+
+        /* ===== 步骤2：游戏 ===== */
+        .step-game {
+            display: none;
+        }
+        .step-game.active {
+            display: block;
+        }
+
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px 16px;
+            margin-bottom: 20px;
+            padding-bottom: 16px;
+            border-bottom: 2px dashed rgba(148, 163, 184, 0.25);
+        }
+
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 12px 20px;
+            flex-wrap: wrap;
+            font-size: 14px;
+            font-weight: 500;
+            color: #334155;
+        }
+        .game-info .badge {
+            background: #eef2ff;
+            padding: 4px 16px;
+            border-radius: 40px;
+            color: #4f46e5;
+            font-weight: 600;
+            font-size: 14px;
+        }
+        .game-info .select-info {
+            color: #64748b;
+            font-weight: 400;
+        }
+        .game-info .select-info strong {
+            color: #1e293b;
+            font-weight: 600;
+        }
+
+        .game-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        /* ===== 卡片网格 ===== */
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+            gap: 16px;
+            margin: 10px 0 16px;
+            perspective: 1200px;
+        }
+
+        /* ===== 单张卡片 ===== */
+        .card {
+            aspect-ratio: 3 / 4;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.5s cubic-bezier(0.23, 1, 0.32, 1);
+            border-radius: 20px;
+        }
+        .card.flipped {
+            transform: rotateY(180deg);
+            cursor: default;
+        }
+
+        .card .card-face {
+            position: absolute;
+            inset: 0;
+            border-radius: 20px;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 12px;
+            text-align: center;
+            user-select: none;
+            transition: box-shadow 0.3s;
+            border: 2px solid rgba(255, 255, 255, 0.3);
+        }
+
+        /* 正面：数字 */
+        .card-face-front {
+            background: linear-gradient(145deg, #ffffff, #f1f5f9);
+            transform: rotateY(0deg);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.06);
+            border-color: #e2e8f0;
+            color: #1e293b;
+        }
+        .card-face-front .number {
+            font-size: 44px;
+            font-weight: 800;
+            color: #334155;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 4px rgba(0, 0, 0, 0.02);
+        }
+        .card-face-front .sub-label {
+            font-size: 12px;
+            color: #94a3b8;
+            font-weight: 400;
+            margin-top: 4px;
+            letter-spacing: 1px;
+        }
+
+        /* 背面：生词 */
+        .card-face-back {
+            background: linear-gradient(145deg, #4f46e5, #7c3aed);
+            transform: rotateY(180deg);
+            box-shadow: 0 8px 28px rgba(79, 70, 229, 0.25);
+            border-color: rgba(255, 255, 255, 0.15);
+            color: white;
+        }
+        .card-face-back .word {
+            font-size: 20px;
+            font-weight: 700;
+            line-height: 1.4;
+            word-break: break-word;
+            padding: 4px;
+        }
+        .card-face-back .hint {
+            font-size: 11px;
+            opacity: 0.4;
+            font-weight: 400;
+            margin-top: 6px;
+            letter-spacing: 0.5px;
+        }
+
+        .card:not(.flipped):hover .card-face-front {
+            border-color: #7c3aed;
+            box-shadow: 0 8px 28px rgba(124, 58, 237, 0.15);
+            transform: scale(1.02);
+        }
+        .card:not(.flipped):hover {
+            transform: translateY(-4px);
+        }
+        .card.flipped:hover {
+            transform: translateY(0);
+        }
+
+        /* ===== 完成 ===== */
+        .game-complete {
+            display: none;
+            text-align: center;
+            padding: 28px 20px 22px;
+            background: rgba(255, 255, 255, 0.6);
+            border-radius: 32px;
+            margin-top: 12px;
+            border: 2px solid rgba(16, 185, 129, 0.2);
+        }
+        .game-complete.active {
+            display: block;
+            animation: fadeUp 0.5s ease;
+        }
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(16px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        .game-complete .icon {
+            font-size: 52px;
+        }
+        .game-complete h2 {
+            font-size: 24px;
+            font-weight: 700;
+            color: #065f46;
+            margin: 6px 0 4px;
+        }
+        .game-complete p {
+            color: #475569;
+            font-size: 15px;
+            margin-bottom: 14px;
+        }
+
+        /* ===== 响应式 ===== */
+        @media (max-width: 640px) {
+            .container {
+                padding: 18px 14px 24px;
+                border-radius: 32px;
+            }
+            .header h1 {
+                font-size: 20px;
+            }
+            .header .total-badge {
+                font-size: 12px;
+                padding: 4px 14px;
+            }
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+                gap: 12px;
+            }
+            .card-face-front .number {
+                font-size: 32px;
+            }
+            .card-face-back .word {
+                font-size: 16px;
+            }
+            .game-header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            .game-actions {
+                justify-content: stretch;
+            }
+            .game-actions .btn {
+                flex: 1;
+                justify-content: center;
+            }
+            .actions-row .btn {
+                flex: 1 1 100%;
+            }
+            .btn {
+                padding: 10px 18px;
+                font-size: 14px;
+            }
+            .game-info {
+                font-size: 13px;
+                gap: 8px 12px;
+            }
+            .input-section .field textarea {
+                min-height: 80px;
+                font-size: 14px;
+            }
+        }
+
+        @media (max-width: 420px) {
+            .card-grid {
+                grid-template-columns: repeat(auto-fill, minmax(68px, 1fr));
+                gap: 10px;
+            }
+            .card-face-front .number {
+                font-size: 26px;
+            }
+            .card-face-back .word {
+                font-size: 14px;
+            }
+            .card-face-front .sub-label {
+                font-size: 10px;
+            }
+            .container {
+                padding: 12px 10px 18px;
+                border-radius: 24px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container" id="app">
+
+        <!-- ===== 头部 ===== -->
+        <div class="header">
+            <h1>
+                🎯 <span>数字翻牌</span>
+            </h1>
+            <span class="total-badge" id="headerTotal">📚 0 个词</span>
+        </div>
+
+        <!-- ========================================= -->
+        <!-- 步骤1：批量输入 -->
+        <!-- ========================================= -->
+        <div class="step-input" id="stepInput">
+            <div class="input-section">
+                <div class="field">
+                    <label for="wordBulkInput">📝 输入生词（每行一个）</label>
+                    <textarea id="wordBulkInput" placeholder="apple&#10;book&#10;cat&#10;dog&#10;elephant&#10;..."></textarea>
+                    <div class="hint">
+                        <span>💡 支持批量粘贴，每行一个单词</span>
+                        <span>共 <span class="count" id="bulkCount">0</span> 个词</span>
+                    </div>
+                </div>
+
+                <div style="display:flex; gap:12px; flex-wrap:wrap; margin-top:4px;">
+                    <button class="btn btn-primary" id="generateBtn">🚀 随机选 15 个 · 开始游戏</button>
+                    <button class="btn btn-outline" id="addExampleBtn">📋 填入示例</button>
+                    <button class="btn btn-danger-outline" id="clearBtn">🗑️ 清空</button>
+                </div>
+            </div>
+
+            <div id="statusMessage" style="margin-top:8px; font-size:14px; color:#64748b; min-height:22px;"></div>
+        </div>
+
+        <!-- ========================================= -->
+        <!-- 步骤2：游戏 -->
+        <!-- ========================================= -->
+        <div class="step-game" id="stepGame">
+            <div class="game-header">
+                <div class="game-info">
+                    <span>📌 点击数字翻牌</span>
+                    <span class="badge" id="gameCounter">0 / 0</span>
+                    <span class="select-info" id="selectInfo">从 <strong>0</strong> 个词中随机选取了 <strong>0</strong> 个</span>
+                </div>
+                <div class="game-actions">
+                    <button class="btn btn-outline btn-sm" id="reshuffleBtn">🎲 重新洗牌</button>
+                    <button class="btn btn-outline btn-sm" id="resetCardsBtn">🔄 全部翻回</button>
+                    <button class="btn btn-outline btn-sm" id="backToInputBtn">⬅ 返回</button>
+                </div>
+            </div>
+
+            <!-- 卡片网格 -->
+            <div class="card-grid" id="cardGrid"></div>
+
+            <!-- 完成 -->
+            <div class="game-complete" id="gameComplete">
+                <div class="icon">🎉</div>
+                <h2>全部翻开啦！</h2>
+                <p id="completeMsg">所有生词已展示，继续加油复习吧 💪</p>
+                <button class="btn btn-primary" id="resetFromCompleteBtn">🔄 翻回数字</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        (function() {
+            'use strict';
+
+            // ===== DOM =====
+            const stepInput = document.getElementById('stepInput');
+            const stepGame = document.getElementById('stepGame');
+            const bulkTextarea = document.getElementById('wordBulkInput');
+            const bulkCount = document.getElementById('bulkCount');
+            const headerTotal = document.getElementById('headerTotal');
+            const statusMessage = document.getElementById('statusMessage');
+            const generateBtn = document.getElementById('generateBtn');
+            const addExampleBtn = document.getElementById('addExampleBtn');
+            const clearBtn = document.getElementById('clearBtn');
+            const cardGrid = document.getElementById('cardGrid');
+            const gameCounter = document.getElementById('gameCounter');
+            const selectInfo = document.getElementById('selectInfo');
+            const backToInputBtn = document.getElementById('backToInputBtn');
+            const resetCardsBtn = document.getElementById('resetCardsBtn');
+            const reshuffleBtn = document.getElementById('reshuffleBtn');
+            const resetFromCompleteBtn = document.getElementById('resetFromCompleteBtn');
+            const gameComplete = document.getElementById('gameComplete');
+            const completeMsg = document.getElementById('completeMsg');
+
+            // ===== 数据 =====
+            let fullWordList = []; // 从textarea解析出的所有单词（去重后）
+            let selectedWords = []; // 当前游戏选中的词
+            let cardElements = [];
+            let flippedCount = 0;
+            let isGameActive = false;
+            const MAX_SELECT = 15;
+
+            // ===== 示例数据 =====
+            const EXAMPLES = [
+                'Apple', 'Book', 'Cat', 'Dog', 'Elephant',
+                'Flower', 'Garden', 'Happy', 'Idea', 'Journey',
+                'Knowledge', 'Light', 'Mountain', 'Nature', 'Ocean',
+                'Peace', 'Queen', 'River', 'Sun', 'Tree',
+                'Unity', 'Voice', 'Water', 'Xenial', 'Yellow',
+                'Zeal', 'Brave', 'Cloud', 'Dream', 'Eagle'
+            ];
+
+            // ===== 工具 =====
+            function shuffle(arr) {
+                for (let i = arr.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [arr[i], arr[j]] = [arr[j], arr[i]];
+                }
+                return arr;
+            }
+
+            function pickRandom(arr, n) {
+                const shuffled = shuffle([...arr]);
+                return shuffled.slice(0, Math.min(n, shuffled.length));
+            }
+
+            function escapeHtml(str) {
+                const div = document.createElement('div');
+                div.textContent = str;
+                return div.innerHTML;
+            }
+
+            // ===== 解析文本域 =====
+            function parseWordsFromTextarea() {
+                const text = bulkTextarea.value;
+                const lines = text.split(/\n/).map(s => s.trim()).filter(s => s.length > 0);
+                // 去重（保留首次出现）
+                const unique = [];
+                const seen = new Set();
+                lines.forEach(w => {
+                    const lower = w.toLowerCase();
+                    if (!seen.has(lower)) {
+                        seen.add(lower);
+                        unique.push(w);
+                    }
+                });
+                return unique;
+            }
+
+            // ===== 更新界面计数 =====
+            function updateBulkCount() {
+                const words = parseWordsFromTextarea();
+                bulkCount.textContent = words.length;
+                headerTotal.textContent = `📚 ${words.length} 个词`;
+                // 状态提示
+                if (words.length === 0) {
+                    statusMessage.textContent = '💡 请在上方输入至少 2 个生词';
+                    statusMessage.style.color = '#64748b';
+                } else if (words.length < 2) {
+                    statusMessage.textContent = '⚠️ 至少需要 2 个词才能开始游戏';
+                    statusMessage.style.color = '#f59e0b';
+                } else if (words.length <= MAX_SELECT) {
+                    statusMessage.textContent = `✅ 共 ${words.length} 个词，将全部使用`;
+                    statusMessage.style.color = '#10b981';
+                } else {
+                    statusMessage.textContent = `✅ 共 ${words.length} 个词，将随机选取 ${MAX_SELECT} 个`;
+                    statusMessage.style.color = '#4f46e5';
+                }
+                // 同步fullWordList（仅用于显示，实际游戏时重新解析）
+            }
+
+            // ===== 开始游戏 =====
+            function startGame() {
+                const words = parseWordsFromTextarea();
+                if (words.length < 2) {
+                    alert('至少需要 2 个生词才能开始游戏哦！再多加几个吧 📖');
+                    return;
+                }
+
+                fullWordList = words; // 保存当前词库
+
+                const count = Math.min(words.length, MAX_SELECT);
+                selectedWords = pickRandom(words, count);
+                if (selectedWords.length < 2) {
+                    alert('选中的词太少，请添加更多生词！');
+                    return;
+                }
+
+                isGameActive = true;
+                flippedCount = 0;
+                stepInput.classList.add('hidden');
+                stepGame.classList.add('active');
+                gameComplete.classList.remove('active');
+
+                buildCards();
+                updateGameInfo();
+                stepGame.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // ===== 重新洗牌 =====
+            function reshuffle() {
+                if (!isGameActive) return;
+                const words = fullWordList.length > 0 ? fullWordList : parseWordsFromTextarea();
+                if (words.length < 2) {
+                    alert('至少需要 2 个生词才能继续游戏！');
+                    return;
+                }
+
+                const count = Math.min(words.length, MAX_SELECT);
+                selectedWords = pickRandom(words, count);
+                if (selectedWords.length < 2) {
+                    alert('选中的词太少，请添加更多生词！');
+                    return;
+                }
+
+                flippedCount = 0;
+                gameComplete.classList.remove('active');
+                buildCards();
+                updateGameInfo();
+                cardGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // ===== 构建卡片 =====
+            function buildCards() {
+                cardGrid.innerHTML = '';
+                cardElements = [];
+
+                selectedWords.forEach((word, index) => {
+                    const card = document.createElement('div');
+                    card.className = 'card';
+                    card.dataset.index = index;
+
+                    const front = document.createElement('div');
+                    front.className = 'card-face card-face-front';
+                    front.innerHTML = `
+                        <span class="number">${index + 1}</span>
+                        <span class="sub-label">点击翻开</span>
+                    `;
+
+                    const back = document.createElement('div');
+                    back.className = 'card-face card-face-back';
+                    back.innerHTML = `
+                        <span class="word">${escapeHtml(word)}</span>
+                        <span class="hint">✦ 生词 ✦</span>
+                    `;
+
+                    card.appendChild(front);
+                    card.appendChild(back);
+                    cardGrid.appendChild(card);
+                    cardElements.push(card);
+
+                    card.addEventListener('click', function() {
+                        const idx = parseInt(this.dataset.index);
+                        flipCard(idx);
+                    });
+                });
+
+                // 卡片数量少时居中
+                if (selectedWords.length <= 6) {
+                    cardGrid.style.maxWidth = '480px';
+                    cardGrid.style.marginLeft = 'auto';
+                    cardGrid.style.marginRight = 'auto';
+                } else {
+                    cardGrid.style.maxWidth = '100%';
+                    cardGrid.style.marginLeft = '0';
+                    cardGrid.style.marginRight = '0';
+                }
+            }
+
+            // ===== 翻牌 =====
+            function flipCard(index) {
+                if (!isGameActive) return;
+                const card = cardElements[index];
+                if (!card || card.classList.contains('flipped')) return;
+
+                card.classList.add('flipped');
+                flippedCount++;
+                updateGameInfo();
+
+                if (flippedCount === selectedWords.length) {
+                    setTimeout(() => {
+                        const total = fullWordList.length || parseWordsFromTextarea().length;
+                        const selected = selectedWords.length;
+                        completeMsg.textContent =
+                            `从 ${total} 个词中随机选取了 ${selected} 个，全部复习完毕！🎊`;
+                        gameComplete.classList.add('active');
+                        gameComplete.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                    }, 500);
+                }
+            }
+
+            // ===== 全部翻回 =====
+            function resetCards() {
+                if (!isGameActive) return;
+                cardElements.forEach(card => {
+                    card.classList.remove('flipped');
+                });
+                flippedCount = 0;
+                gameComplete.classList.remove('active');
+                updateGameInfo();
+                cardGrid.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
+
+            // ===== 更新游戏信息 =====
+            function updateGameInfo() {
+                const total = selectedWords.length;
+                const flipped = flippedCount;
+                gameCounter.textContent = `${flipped} / ${total}`;
+
+                const allCount = fullWordList.length || parseWordsFromTextarea().length;
+                const selCount = selectedWords.length;
+                if (allCount <= MAX_SELECT) {
+                    selectInfo.innerHTML = `共 <strong>${allCount}</strong> 个词，全部使用`;
+                } else {
+                    selectInfo.innerHTML =
+                        `从 <strong>${allCount}</strong> 个词中随机选取了 <strong>${selCount}</strong> 个`;
+                }
+            }
+
+            // ===== 结束游戏 =====
+            function endGame() {
+                isGameActive = false;
+                flippedCount = 0;
+                selectedWords = [];
+                cardElements = [];
+                stepGame.classList.remove('active');
+                stepInput.classList.remove('hidden');
+                gameComplete.classList.remove('active');
+                cardGrid.innerHTML = '';
+                updateBulkCount();
+                document.querySelector('.container').scrollIntoView({ behavior: 'smooth' });
+            }
+
+            // ===== 清空文本域 =====
+            function clearTextarea() {
+                if (isGameActive) {
+                    if (!confirm('清空生词会重置游戏，确定吗？')) return;
+                    endGame();
+                }
+                bulkTextarea.value = '';
+                updateBulkCount();
+                bulkTextarea.focus();
+            }
+
+            // ===== 填入示例 =====
+            function fillExamples() {
+                if (isGameActive) {
+                    if (!confirm('填入示例会重置游戏，确定吗？')) return;
+                    endGame();
+                }
+                bulkTextarea.value = EXAMPLES.join('\n');
+                updateBulkCount();
+                bulkTextarea.focus();
+            }
+
+            // ===== 实时更新计数 =====
+            bulkTextarea.addEventListener('input', function() {
+                updateBulkCount();
+            });
+
+            // ===== 按钮绑定 =====
+            generateBtn.addEventListener('click', startGame);
+            addExampleBtn.addEventListener('click', fillExamples);
+            clearBtn.addEventListener('click', clearTextarea);
+            backToInputBtn.addEventListener('click', function() {
+                if (isGameActive && flippedCount > 0) {
+                    if (!confirm('确定返回吗？游戏进度将丢失。')) return;
+                }
+                endGame();
+            });
+            resetCardsBtn.addEventListener('click', resetCards);
+            reshuffleBtn.addEventListener('click', reshuffle);
+            resetFromCompleteBtn.addEventListener('click', resetCards);
+
+            // ===== 初始化 =====
+            updateBulkCount();
+
+            // 如果无内容，自动填入示例（可选）
+            if (parseWordsFromTextarea().length === 0) {
+                // 不自动填入，让用户自行粘贴或点击示例按钮
+            }
+
+            console.log('🎯 数字翻牌 · 批量输入版 已启动！');
+            console.log('💡 在文本框中每行一个生词，点击按钮随机选15个开始游戏。');
+
+        })();
+    </script>
+
+</body>
+</html>
